@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<agenda>
+  <autor>
+    <id>1020</id>
+    <nome>Marcos Ribas</nome>
+    <email>marcos.ribas@email.com</email>
+    <telefone>+55 19 932909285</telefone>
+  </autor>
+  <dataCriacao>2020-08-06T13:26:48.233-03:00</dataCriacao>
+  <visibilidade>PUBLICO</visibilidade>
+  <contatos>
+    <contato>
+      <id>1001</id>
+      <nome>Belinda Bella</nome>
+      <email>belinda.bella@email.com</email>
+      <telefone>+55 19 960754912</telefone>
+    </contato>
+    <contato>
+      <id>1002</id>
+      <nome>Diógenes Dinósio</nome>
+      <email>diogenes.d@email.com</email>
+      <telefone>+55 19 984104573</telefone>
+    </contato>
+  </contatos>
+</agenda>
