@@ -1,5 +1,5 @@
 <xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
-<xsl:output omit-xml-declaration="no" indent="yes"/>
+<xsl:output omit-xml-declaration="no" version="1.0" standalone="yes" indent="no"/>
 
 <xsl:template match="/agenda">
 <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:catalogo="http://registro.com.br/catalogo">

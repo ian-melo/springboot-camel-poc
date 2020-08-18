@@ -1,4 +1,4 @@
-package net.ism.sandbox;
+package net.ism.sandbox.poc;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
