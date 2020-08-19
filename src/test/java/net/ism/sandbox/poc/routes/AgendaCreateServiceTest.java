@@ -1,30 +1,51 @@
 package net.ism.sandbox.poc.routes;
 
-import org.apache.camel.RoutesBuilder;
-import org.apache.camel.test.junit5.CamelTestSupport;
-import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.context.SpringBootTest;
+import org.apache.camel.EndpointInject;
+import org.apache.camel.Produce;
+import org.apache.camel.ProducerTemplate;
+import org.apache.camel.builder.RouteBuilder;
+import org.apache.camel.component.mock.MockEndpoint;
+import org.apache.camel.spring.javaconfig.SingleRouteCamelConfiguration;
+import org.junit.Test;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit4.AbstractJUnit4SpringContextTests;
 
 import net.ism.sandbox.poc.SampleConstants;
 
-@SpringBootTest
-public class AgendaCreateServiceTest extends CamelTestSupport {
+@ContextConfiguration
+public class AgendaCreateServiceTest extends AbstractJUnit4SpringContextTests {
 	/* Valores para teste */
 	private static final String FROM_AGENDA_CREATE = "direct:fromAgendaCreate";
 	private static final String TO_AGENDA_HANDLER = "mock:toAgendaHandler";
 	private static final String TO_CONTATO_UPDATE = "mock:toContatoUpdate";
 	private static final String TO_CATALOGO_SAVE = "mock:toCatalogoSave";
 	private static final String TO_AUTOR_LOG = "mock:toAutorLog";
-
-	@Override
-	protected RoutesBuilder createRouteBuilder() throws Exception {
-		return new AgendaCreateService(
-				FROM_AGENDA_CREATE,
-				TO_AGENDA_HANDLER,
-				TO_CONTATO_UPDATE,
-				TO_CATALOGO_SAVE,
-				TO_AUTOR_LOG);
-	}
+	/* Configuração */
+	@Configuration
+    public static class ContextConfig extends SingleRouteCamelConfiguration {
+        @Bean
+        public RouteBuilder route() {
+        	return new AgendaCreateService(
+    				FROM_AGENDA_CREATE,
+    				TO_AGENDA_HANDLER,
+    				TO_CONTATO_UPDATE,
+    				TO_CATALOGO_SAVE,
+    				TO_AUTOR_LOG);
+        }
+    }
+	@Produce(FROM_AGENDA_CREATE)
+	protected ProducerTemplate fromAgendaCreateTemplate;
+	@EndpointInject(TO_AGENDA_HANDLER)
+	protected MockEndpoint toAgendaHandlerEndpoint;
+	@EndpointInject(TO_CONTATO_UPDATE)
+	protected MockEndpoint toContatoUpdateEndpoint;
+	@EndpointInject(TO_CATALOGO_SAVE)
+	protected MockEndpoint toCatalogoSaveEndpoint;
+	@EndpointInject(TO_AUTOR_LOG)
+	protected MockEndpoint toAutorLogEndpoint;
 
 	private String INVALID_SORT_XML() { return new StringBuilder()
 			.append("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>")
@@ -54,7 +75,6 @@ public class AgendaCreateServiceTest extends CamelTestSupport {
 			.append("</agenda>")
 			.toString();
 	}
-
 	private String INVALID_MISSING_XML() { return new StringBuilder()
 			.append("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>")
 			.append("<agenda>")
@@ -77,7 +97,6 @@ public class AgendaCreateServiceTest extends CamelTestSupport {
 			.append("</agenda>")
 			.toString();
 	}
-
 	private String INVALID_ADDITIONAL_XML() { return new StringBuilder()
 			.append("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>")
 			.append("<agenda>")
@@ -107,7 +126,6 @@ public class AgendaCreateServiceTest extends CamelTestSupport {
 			.append("<qualquerCoisa/>")
 			.toString();
 	}
-
 	private String INVALID_VALUE_XML() { return new StringBuilder()
 			.append("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>")
 			.append("<agenda>")
@@ -137,74 +155,103 @@ public class AgendaCreateServiceTest extends CamelTestSupport {
 			.toString();
 	}
 
-	@Test
+	/* Testes */
+	@DirtiesContext
+    @Test
 	public void when_fromAgendaCreate_given_validInputPublicoAllInfo_then_pass() throws Exception {
-		getMockEndpoint(TO_AGENDA_HANDLER).expectedBodiesReceived();
-		getMockEndpoint(TO_CONTATO_UPDATE).expectedBodiesReceived(SampleConstants.VALID_ALLINFO_PUBLICO_AGENDA_XML());
-		getMockEndpoint(TO_CATALOGO_SAVE).expectedBodiesReceived(SampleConstants.VALID_ALLINFO_PUBLICO_AGENDA_XML());
-		getMockEndpoint(TO_AUTOR_LOG).expectedBodiesReceived(SampleConstants.VALID_ALLINFO_PUBLICO_AGENDA_XML());
-		template.sendBody(FROM_AGENDA_CREATE, SampleConstants.VALID_ALLINFO_PUBLICO_AGENDA_XML());
-		assertMockEndpointsSatisfied();
+		toAgendaHandlerEndpoint.expectedBodiesReceived();
+		toContatoUpdateEndpoint.expectedBodiesReceived(SampleConstants.VALID_ALLINFO_PUBLICO_AGENDA_XML());
+		toCatalogoSaveEndpoint.expectedBodiesReceived(SampleConstants.VALID_ALLINFO_PUBLICO_AGENDA_XML());
+		toAutorLogEndpoint.expectedBodiesReceived(SampleConstants.VALID_ALLINFO_PUBLICO_AGENDA_XML());
+		fromAgendaCreateTemplate.sendBody(SampleConstants.VALID_ALLINFO_PUBLICO_AGENDA_XML());
+		toAgendaHandlerEndpoint.assertIsSatisfied();
+		toContatoUpdateEndpoint.assertIsSatisfied();
+		toCatalogoSaveEndpoint.assertIsSatisfied();
+		toAutorLogEndpoint.assertIsSatisfied();
 	}
 
-	@Test
+    @DirtiesContext
+    @Test
 	public void when_fromAgendaCreate_given_validInputPrivadoSomeInfo_then_pass() throws Exception {
-		getMockEndpoint(TO_AGENDA_HANDLER).expectedBodiesReceived();
-		getMockEndpoint(TO_CONTATO_UPDATE).expectedBodiesReceived(SampleConstants.VALID_SOMEINFO_PRIVADO_AGENDA_XML());
-		getMockEndpoint(TO_CATALOGO_SAVE).expectedBodiesReceived(SampleConstants.VALID_SOMEINFO_PRIVADO_AGENDA_XML());
-		getMockEndpoint(TO_AUTOR_LOG).expectedBodiesReceived(SampleConstants.VALID_SOMEINFO_PRIVADO_AGENDA_XML());
-		template.sendBody(FROM_AGENDA_CREATE, SampleConstants.VALID_SOMEINFO_PRIVADO_AGENDA_XML());
-		assertMockEndpointsSatisfied();
+    	toAgendaHandlerEndpoint.expectedBodiesReceived();
+    	toContatoUpdateEndpoint.expectedBodiesReceived(SampleConstants.VALID_SOMEINFO_PRIVADO_AGENDA_XML());
+    	toCatalogoSaveEndpoint.expectedBodiesReceived(SampleConstants.VALID_SOMEINFO_PRIVADO_AGENDA_XML());
+    	toAutorLogEndpoint.expectedBodiesReceived(SampleConstants.VALID_SOMEINFO_PRIVADO_AGENDA_XML());
+    	fromAgendaCreateTemplate.sendBody(SampleConstants.VALID_SOMEINFO_PRIVADO_AGENDA_XML());
+    	toAgendaHandlerEndpoint.assertIsSatisfied();
+    	toContatoUpdateEndpoint.assertIsSatisfied();
+    	toCatalogoSaveEndpoint.assertIsSatisfied();
+    	toAutorLogEndpoint.assertIsSatisfied();
 	}
 
-	@Test
+	@DirtiesContext
+    @Test
 	public void when_fromAgendaCreate_given_validInputRestritoOnlyInfo_then_pass() throws Exception {
-		getMockEndpoint(TO_AGENDA_HANDLER).expectedBodiesReceived();
-		getMockEndpoint(TO_CONTATO_UPDATE).expectedBodiesReceived(SampleConstants.VALID_ONLYINFO_RESTRITO_AGENDA_XML());
-		getMockEndpoint(TO_CATALOGO_SAVE).expectedBodiesReceived(SampleConstants.VALID_ONLYINFO_RESTRITO_AGENDA_XML());
-		getMockEndpoint(TO_AUTOR_LOG).expectedBodiesReceived(SampleConstants.VALID_ONLYINFO_RESTRITO_AGENDA_XML());
-		template.sendBody(FROM_AGENDA_CREATE, SampleConstants.VALID_ONLYINFO_RESTRITO_AGENDA_XML());
-		assertMockEndpointsSatisfied();
+		toAgendaHandlerEndpoint.expectedBodiesReceived();
+		toContatoUpdateEndpoint.expectedBodiesReceived(SampleConstants.VALID_ONLYINFO_RESTRITO_AGENDA_XML());
+		toCatalogoSaveEndpoint.expectedBodiesReceived(SampleConstants.VALID_ONLYINFO_RESTRITO_AGENDA_XML());
+		toAutorLogEndpoint.expectedBodiesReceived(SampleConstants.VALID_ONLYINFO_RESTRITO_AGENDA_XML());
+		fromAgendaCreateTemplate.sendBody(SampleConstants.VALID_ONLYINFO_RESTRITO_AGENDA_XML());
+		toAgendaHandlerEndpoint.assertIsSatisfied();
+		toContatoUpdateEndpoint.assertIsSatisfied();
+		toCatalogoSaveEndpoint.assertIsSatisfied();
+		toAutorLogEndpoint.assertIsSatisfied();
 	}
 
-	@Test
+	@DirtiesContext
+    @Test
 	public void when_fromAgendaCreate_given_invalidSortInput_then_filter() throws Exception {
-		getMockEndpoint(TO_AGENDA_HANDLER).expectedBodiesReceived(INVALID_SORT_XML());
-		getMockEndpoint(TO_CONTATO_UPDATE).expectedBodiesReceived();
-		getMockEndpoint(TO_CATALOGO_SAVE).expectedBodiesReceived();
-		getMockEndpoint(TO_AUTOR_LOG).expectedBodiesReceived();
-		template.sendBody(FROM_AGENDA_CREATE, INVALID_SORT_XML());
-		assertMockEndpointsSatisfied();
+		toAgendaHandlerEndpoint.expectedBodiesReceived(INVALID_SORT_XML());
+		toContatoUpdateEndpoint.expectedBodiesReceived();
+		toCatalogoSaveEndpoint.expectedBodiesReceived();
+		toAutorLogEndpoint.expectedBodiesReceived();
+		fromAgendaCreateTemplate.sendBody(INVALID_SORT_XML());
+		toAgendaHandlerEndpoint.assertIsSatisfied();
+		toContatoUpdateEndpoint.assertIsSatisfied();
+		toCatalogoSaveEndpoint.assertIsSatisfied();
+		toAutorLogEndpoint.assertIsSatisfied();
 	}
 
-	@Test
+	@DirtiesContext
+    @Test
 	public void when_fromAgendaCreate_given_invalidMissingInput_then_filter() throws Exception {
-		getMockEndpoint(TO_AGENDA_HANDLER).expectedBodiesReceived(INVALID_MISSING_XML());
-		getMockEndpoint(TO_CONTATO_UPDATE).expectedBodiesReceived();
-		getMockEndpoint(TO_CATALOGO_SAVE).expectedBodiesReceived();
-		getMockEndpoint(TO_AUTOR_LOG).expectedBodiesReceived();
-		template.sendBody(FROM_AGENDA_CREATE, INVALID_MISSING_XML());
-		assertMockEndpointsSatisfied();
+		toAgendaHandlerEndpoint.expectedBodiesReceived(INVALID_MISSING_XML());
+		toContatoUpdateEndpoint.expectedBodiesReceived();
+		toCatalogoSaveEndpoint.expectedBodiesReceived();
+		toAutorLogEndpoint.expectedBodiesReceived();
+		fromAgendaCreateTemplate.sendBody(INVALID_MISSING_XML());
+		toAgendaHandlerEndpoint.assertIsSatisfied();
+		toContatoUpdateEndpoint.assertIsSatisfied();
+		toCatalogoSaveEndpoint.assertIsSatisfied();
+		toAutorLogEndpoint.assertIsSatisfied();
 	}
 
-	@Test
+	@DirtiesContext
+    @Test
 	public void when_fromAgendaCreate_given_invalidAdditionalInput_then_filter() throws Exception {
-		getMockEndpoint(TO_AGENDA_HANDLER).expectedBodiesReceived(INVALID_ADDITIONAL_XML());
-		getMockEndpoint(TO_CONTATO_UPDATE).expectedBodiesReceived();
-		getMockEndpoint(TO_CATALOGO_SAVE).expectedBodiesReceived();
-		getMockEndpoint(TO_AUTOR_LOG).expectedBodiesReceived();
-		template.sendBody(FROM_AGENDA_CREATE, INVALID_ADDITIONAL_XML());
-		assertMockEndpointsSatisfied();
+		toAgendaHandlerEndpoint.expectedBodiesReceived(INVALID_ADDITIONAL_XML());
+		toContatoUpdateEndpoint.expectedBodiesReceived();
+		toCatalogoSaveEndpoint.expectedBodiesReceived();
+		toAutorLogEndpoint.expectedBodiesReceived();
+		fromAgendaCreateTemplate.sendBody(INVALID_ADDITIONAL_XML());
+		toAgendaHandlerEndpoint.assertIsSatisfied();
+		toContatoUpdateEndpoint.assertIsSatisfied();
+		toCatalogoSaveEndpoint.assertIsSatisfied();
+		toAutorLogEndpoint.assertIsSatisfied();
 	}
 
-	@Test
+	@DirtiesContext
+    @Test
 	public void when_fromAgendaCreate_given_invalidValueInput_then_filter() throws Exception {
-		getMockEndpoint(TO_AGENDA_HANDLER).expectedBodiesReceived(INVALID_VALUE_XML());
-		getMockEndpoint(TO_CONTATO_UPDATE).expectedBodiesReceived();
-		getMockEndpoint(TO_CATALOGO_SAVE).expectedBodiesReceived();
-		getMockEndpoint(TO_AUTOR_LOG).expectedBodiesReceived();
-		template.sendBody(FROM_AGENDA_CREATE, INVALID_VALUE_XML());
-		assertMockEndpointsSatisfied();
+		toAgendaHandlerEndpoint.expectedBodiesReceived(INVALID_VALUE_XML());
+		toContatoUpdateEndpoint.expectedBodiesReceived();
+		toCatalogoSaveEndpoint.expectedBodiesReceived();
+		toAutorLogEndpoint.expectedBodiesReceived();
+		fromAgendaCreateTemplate.sendBody(INVALID_VALUE_XML());
+		toAgendaHandlerEndpoint.assertIsSatisfied();
+		toContatoUpdateEndpoint.assertIsSatisfied();
+		toCatalogoSaveEndpoint.assertIsSatisfied();
+		toAutorLogEndpoint.assertIsSatisfied();
 	}
 
 }

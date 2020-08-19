@@ -34,13 +34,12 @@ public class AgendaCreateService extends RouteBuilder {
 		errorHandler(
 				deadLetterChannel(this.toAgendaHandler).
 				useOriginalMessage().
-				logExhaustedMessageHistory(true).
 				maximumRedeliveries(3).
-				redeliveryDelay(3000).
+				redeliveryDelay(1000).
 				onRedelivery((exchange) -> {
 					int it = (int) exchange.getIn().getHeader(Exchange.REDELIVERY_COUNTER);
 					int n = (int) exchange.getIn().getHeader(Exchange.REDELIVERY_MAX_COUNTER);
-					log.warn("[{}] Enviando para erro (tentativa {} de {})",
+					log.warn("[{}] Conteúdo da mensagem inválido. Enviando para fila de erro (tentativa {} de {}).",
 							simple("${id}").evaluate(exchange, String.class), it, n);
 				}));
 
